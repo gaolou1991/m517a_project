@@ -30,7 +30,7 @@ module BearRangeDecodeTop(
 	output BearNorth
 );
 	wire select;
-	ConfigRegDecode(
+	ConfigRegDecode config_decode(
 		.Clk	( Clk33M ), 
 		.nReset	( nReset ),
 		.Addr	( WriteAddr ),
@@ -57,8 +57,10 @@ module BearRangeDecodeTop(
 	wire [11:0] bear;
 	assign bear = select ? ex_bear : in_bear;
 	
+	wire [3:0] sector;
+	
 	BearDecode bear_decode(
-		.Clk		( Clk ), 
+		.Clk		( Clk40M ), 
 		.nReset		( nReset ),
 		.Bear		( bear ),
 		.BearSector	( sector ),	
@@ -99,12 +101,10 @@ module BearRangeDecodeTop(
 		.Enable		( ReadEnable),
 		.Select		( select ), 
 		.Bear		( bear ),
-		.Ship		( ship ),
+		.Ship		( ex_ship ),
 		.SynclkCount( synclk_cout),
 		.Data		( StatusData)
 	);
-	
-	assign BearCode = bear;
 
 endmodule
 
