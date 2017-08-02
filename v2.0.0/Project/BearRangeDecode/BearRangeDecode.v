@@ -34,7 +34,7 @@ module RangeDecode(
 	);
 	
 	wire [7:0] cout_200k;
-	wire clear, enclk200k;
+	wire clear, clk200k;
 	
 	assign clk200k = cout_200k == `COUNTOR_200K;
 	assign clear = pos_synclk | clk200k;

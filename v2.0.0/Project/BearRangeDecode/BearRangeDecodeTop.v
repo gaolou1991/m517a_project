@@ -15,11 +15,12 @@ module BearRangeDecodeTop(
 	//config and status
 	input [2:0] WriteAddr, ReadAddr,
 	input WriteEnable, ReadEnable,
-	input Cmd,
+	input [1:0] Cmd,
 	output [11:0] StatusData,
-	//sn74hc164
+	//extern port
 	input [1:0] PdiDat,
 	output [1:0] PdiClk, PdiLt,
+	input Synclk,
 	//insidde port
 	input [11:0] InsideBear,
 	input InsideSynclk,
@@ -29,7 +30,7 @@ module BearRangeDecodeTop(
 	output RangeTrace, AdcLauch,
 	output BearNorth
 );
-	wire select;
+	wire [1:0] select;
 	ConfigRegDecode config_decode(
 		.Clk	( Clk33M ), 
 		.nReset	( nReset ),
@@ -55,10 +56,9 @@ module BearRangeDecodeTop(
 	assign in_bear = InsideBear;
 	
 	wire [11:0] bear;
-	assign bear = select ? ex_bear : in_bear;
+	assign bear = select[0] ? ex_bear : in_bear;
 	
 	wire [3:0] sector;
-	
 	BearDecode bear_decode(
 		.Clk		( Clk40M ), 
 		.nReset		( nReset ),
@@ -83,7 +83,7 @@ module BearRangeDecodeTop(
 	assign in_synclk = InsideSynclk;
 	
 	wire synclk;
-	assign synclk = select ? ex_synclk : in_synclk;
+	assign synclk = select[1] ? ex_synclk : in_synclk;
 	
 	RangeDecode range_decode(
 		.Clk		( Clk40M ), 
@@ -112,12 +112,12 @@ module ConfigRegDecode(
 	input Clk, nReset,
 	input [2:0] Addr,
 	input Enable,
-	input Command,
-	output oCmd
+	input [1:0] Command,
+	output [1:0] oCmd
 );
-	reg cmd;
+	reg [1:0] cmd;
 	always @(posedge Clk, negedge nReset)begin
-		if(!nReset) cmd <= 1'b0;
+		if(!nReset) cmd <= {2{1'b0}};
 		else if( Enable) begin 
 			case (Addr)
 				3'd0 : cmd <= Command;
@@ -133,7 +133,7 @@ module StatusRegDecode(
 	input Clk, nReset,
 	input [2:0] Addr,
 	input Enable,
-	input Select,
+	input [1:0] Select,
 	input [11:0] Bear,
 	input [7:0] Ship,
 	input [7:0] SynclkCount,
@@ -144,7 +144,7 @@ module StatusRegDecode(
 		if(!nReset) data <= {12{1'b0}};
 		else if(Enable) begin
 			case (Addr)
-				3'd0 : data <= {11'd0, Select};
+				3'd0 : data <= {10'd0, Select};
 				3'd1 : data <= Bear;
 				3'd2 : data <= {4'd0, Ship};
 				3'd3 : data <= {4'd0, SynclkCount};
